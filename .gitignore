@@ -1,0 +1,16 @@
+# Environnement virtuel Python
+venv/
+env/
+.env/
+
+# Fichiers cache de Python
+__pycache__/
+*.py[cod]
+
+# IDEs
+.vscodium/
+.idea/
+
+# Fichiers système Linux
+.DS_Store
+Thumbs.db
