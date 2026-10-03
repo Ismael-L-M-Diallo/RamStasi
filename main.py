@@ -153,9 +153,32 @@ lst_Ram2={f"{x} : {y}" for x, y in zip(lst3, lst4)}
 print(lst_Ram2)
 
 
-df2= pd.DataFrame(lst_Ram2)
+df2= pd.DataFrame(zip(lst3, lst4), columns=["Article", "Prix "])
 
 print(df2)
 
 
 df2.to_csv("indicateur de prix de Ram Alternate.csv")
+
+
+
+
+
+
+
+
+
+
+html3=rep3.content
+soup3= bs(html3, "lxml")
+
+print(soup3)
+
+titres3= soup3.find_all("div", class_="yArygEfC")
+
+lst5=[]
+
+for titres in titres3:
+  lst5.append(titres.getText(strip=True))
+
+print(lst5)
