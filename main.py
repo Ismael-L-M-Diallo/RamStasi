@@ -1,6 +1,13 @@
+### Biblios
 import requests
 import re
 from bs4 import BeautifulSoup as bs
+import pandas as pd 
+
+
+
+
+### Requetes sources
 
 rep = requests.get("https://www.ldlc.com/informatique/pieces-informatique/memoire-pc/c4703/+fi62-l8+fv133-11607,11608,11610,20073,20691,20843.html?sort=1")
 print (rep)
@@ -12,40 +19,32 @@ rep3=requests.get("https://www.digitec.ch/fr/s1/producttype/memoire-vive-2?so=5&
 print(rep3)
 
 
-html = rep.content
 
-#print(html)
+
+
+
+###RAM LDLC
+
+
+  ##Content et HTML
+html = rep.content
 
 soup1= bs(html, "lxml")
 
-print(soup1)
 
+  ##Recuperation titres
 titres_art=soup1.find_all("h3", class_="title-3")
 
 lst1=[]
   
 for titres in titres_art :
   a= titres.get_text(strip=True)
-  #print(type(a))
   lst1.append(a)
 
-#  print(titres.get_text(strip=True))
-
-#print(lst1)
 
 
-
-
-
-
-lst2=[]
-
+  ##Recuperation prix
 prix1= soup1.find_all("div", class_= "price")
-
-for product in soup1.find_all("div", class_="listing-product"):
-    for prix in prix1:
-      pr=prix.get_text(strip=True)
-      lst2.append(pr)
 
 lst2 = []
 for script in soup1.find_all('script'):
@@ -53,88 +52,51 @@ for script in soup1.find_all('script'):
         pattern = r'<div class="price">(\d+)€<sup>(\d+)<\/sup>'
         matches = re.findall(pattern, script.string)
         for euros, centimes in matches:
-            prix_propre = f"{euros}€{centimes}"
+            prix_propre = f"{euros}.{centimes}"
             lst2.append(prix_propre)
 
+
+  ##Liste fustion articles + prix
 lst_Ram = [f"{x} : {y}" for x, y in zip(lst1, lst2)]
 
-for produit in lst_Ram:
-    print(produit)
-#print(lst2)
-
-#prix2= soup1.find_all("sup")
+#for produit in lst_Ram:
+ #   print(produit)
 
 
-#for prix in soup1.find_all("div", class_="price"):
-    # Récupère tous les morceaux de texte en ignorant les espaces inutiles
- #   texte = "".join(prix.stripped_strings)   # → "1999" ou "1999€"
-  #  lst2.append(texte)
-
-
-lst3=[]
-
-for prix in prix1:
-    lst3.append(prix.get_text(strip=True))
-
-#print(lst3)
-
-
-#for p in soup1.find_all("div", class_="price")[:5]:
- #   print(p.prettify())
-  #  print("---")
-
-#lst_Ram=list(zip(lst1+lst2))
-#lst_Ram=[f"{x} {y}" for x, y in zip(lst1, lst2)]
-
-#print(lst_Ram)
-#for titres in titres_art :
- #   for prix in prix1:
-  #          print(titres.get_text(strip=True), prix.get_text(strip=True))
-
-
-import pandas as pd 
-
-
+  ##Export en df
 df=pd.DataFrame(zip(lst1, lst2), columns= ["Article", 'Prix'])
 
 print(df)
 
-df.to_csv('indicateur_prix_ram.csv')
+df.to_csv('indicateur_prix_ram_ldlc.csv')
 
 
 
 
 
+###RAM LDLC
 
 
-
-
-
-
-
-
-
+ ##Content et HTML
+ 
 html2=rep2.content
-
-print(html2)
 
 soup2=bs(html2, 'lxml')
 
-print(soup2)
 
-
+  ##Recuperation prix
 prix2=soup2.find_all("span", class_='price')
 
 lst4=[]
 
 for prix in prix2:
-  c=prix.get_text(strip=True)
+  c=prix.get_text(strip=True)[2:].replace(',', '.')
   lst4.append(c)
 
-print(lst4)
+#print(lst4)
 
-#class="product-name font-weight-bold"
 
+  ##Recuperation titres
 lst3=[]
 
 noms2= soup2.find_all("div", class_="product-name font-weight-bold")
@@ -146,6 +108,7 @@ for noms in noms2:
 print(lst3)
 
 
+  ##Liste fustion articles + prix
 lst_Ram2=[]
 
 lst_Ram2={f"{x} : {y}" for x, y in zip(lst3, lst4)}
@@ -153,10 +116,10 @@ lst_Ram2={f"{x} : {y}" for x, y in zip(lst3, lst4)}
 print(lst_Ram2)
 
 
+  ##Export en df
 df2= pd.DataFrame(zip(lst3, lst4), columns=["Article", "Prix "])
 
 print(df2)
-
 
 df2.to_csv("indicateur de prix de Ram Alternate.csv")
 
@@ -166,19 +129,48 @@ df2.to_csv("indicateur de prix de Ram Alternate.csv")
 
 
 
+###RAM Digitec (null)
 
-
-
+ ##Soup
 html3=rep3.content
 soup3= bs(html3, "lxml")
 
-print(soup3)
+##print(soup3)
 
+  ##Articles
 titres3= soup3.find_all("div", class_="yArygEfC")
 
 lst5=[]
 
 for titres in titres3:
-  lst5.append(titres.getText(strip=True))
+  lst5.append(int(titres.getText(strip=True)))
 
-print(lst5)
+
+### FIN
+
+  ##Merge des listes prix
+lstp=lst2+lst4
+print(lstp)
+
+lstprix=[]
+
+ ##conversion prix str a int
+for prix in lstp:
+  prix=float(prix)
+  lstprix.append(prix)
+
+print(lstprix)  
+
+ ##Merge listes articles
+lstart=lst1+lst3
+print(lstart)
+
+
+ ##Creation Dataframe de surveillances des prix de la RAM Octobre 2026
+dfRam= pd.DataFrame(zip(lstart, lstprix), columns= ["Articles", "Prix"])
+
+dfRam=dfRam.sort_values(by="Prix")
+print(dfRam)
+
+##Export csv
+dfRam.to_csv("Dataframe_prix_Ram_France_2026.csv")
